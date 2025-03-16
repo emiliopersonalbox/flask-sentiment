@@ -2,3 +2,4 @@ flask
 gunicorn
 transformers
 torch
+protobuf
