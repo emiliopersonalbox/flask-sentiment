@@ -40,6 +40,7 @@ def analyze():
     result = analyze_text(text)
     return jsonify(result)
 
+# Imposta il server Flask per funzionare su Render
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    port = int(os.environ.get("PORT", 5000))  # Render assegna automaticamente la porta
+    app.run(host="0.0.0.0", port=port)  # Rendi accessibile il server
