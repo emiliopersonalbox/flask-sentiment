@@ -40,8 +40,10 @@ def analyze():
     result = analyze_text(text)
     return jsonify(result)
 
+import os
+
 if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 5000))  # Usa la porta assegnata da Render
+    port = int(os.getenv("PORT", 5000))  # Usa la porta assegnata da Render
     app.run(host="0.0.0.0", port=port)  # Rendi accessibile il server
+
 
