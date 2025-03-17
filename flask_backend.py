@@ -1,55 +1,47 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS  # Importa Flask-CORS
 from transformers import pipeline
-import os
-
+from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)  # Abilita CORS per tutta l'app
+CORS(app)  # Abilita CORS per permettere richieste da altri domini
 
+# **Pipeline per diverse analisi del Sentiment**
+pipelines = {
+    "sentiment-analysis": pipeline("sentiment-analysis"),  # Positivo/Negativo/Neutro
+    "sarcasm-detection": pipeline("text-classification", model="mvanvlasselaer/robbert-sarcasm-dutch"),  # Sarcasmo
+    "emotion-analysis": pipeline("text-classification", model="j-hartmann/emotion-english-distilroberta-base"),  # Emozioni
+    "contextual-meaning": pipeline("zero-shot-classification"),  # Contesto e significato
+    "subjectivity-detection": pipeline("text-classification", model="cardiffnlp/twitter-roberta-base-subjective-objective"),  # Oggettivo/Soggettivo
+}
 
-# Carica i modelli di Hugging Face
-sentiment_pipeline = pipeline("sentiment-analysis", model="Siebert/sentiment-roberta-large-english")
-toxicity_pipeline = pipeline("text-classification", model="unitary/toxic-bert")
-emotion_pipeline = pipeline("text-classification", model="bhadresh-savani/distilbert-base-uncased-emotion")
+@app.route("/")
+def home():
+    return jsonify({"message": "API funzionante!"})
 
-# Funzione per analizzare il testo
-def analyze_text(text):
-    results = {}
-
-    # Analizza il sentiment
-    sentiment = sentiment_pipeline(text)[0]
-    results["Sentiment"] = sentiment['label']
-
-    # Analizza la tossicità
-    toxicity = toxicity_pipeline(text)[0]
-    results["Tossicità"] = f"{toxicity['label']} ({toxicity['score']:.2f})"
-
-    # Analizza le emozioni negative
-    emotions = emotion_pipeline(text)
-    negative_emotions = ['anger', 'sadness', 'fear', 'disgust']
-    results["Emozioni Negative"] = [e['label'] for e in emotions if e['label'] in negative_emotions]
-
-    # Blocca messaggi tossici o negativi
-    if results["Sentiment"] != "POSITIVE" or results["Tossicità"].startswith("toxic") or results["Emozioni Negative"]:
-        results["Status"] = "❌ Messaggio rifiutato: contiene elementi negativi."
-    else:
-        results["Status"] = "✅ Messaggio approvato!"
-
-    return results
-
-@app.route('/analyze', methods=['POST'])
+@app.route("/analyze", methods=["POST"])
 def analyze():
-    data = request.get_json()
-    text = data.get("text", "")
-    return jsonify({"message": "API funzionante!", "text": text})
+    try:
+        data = request.json
+        text = data.get("text", "")
 
+        if not text:
+            return jsonify({"error": "Nessun testo fornito"}), 400
 
-import os
+        # **Esegui tutte le analisi sentimentali**
+        results = {}
+        for model_name, model in pipelines.items():
+            try:
+                if model_name == "contextual-meaning":
+                    results[model_name] = model(text, candidate_labels=["gioia", "tristezza", "rabbia", "sorpresa", "sarcasmo", "neutro"])
+                else:
+                    results[model_name] = model(text)
+            except Exception as e:
+                results[model_name] = {"error": str(e)}
+
+        return jsonify({"text": text, "results": results})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
-
-
-
+    app.run(host="0.0.0.0", port=5000)
