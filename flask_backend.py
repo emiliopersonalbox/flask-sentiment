@@ -5,6 +5,8 @@ import os
 
 
 app = Flask(__name__)
+CORS(app)  # Abilita CORS per tutte le richieste
+
 
 # Carica i modelli di Hugging Face
 sentiment_pipeline = pipeline("sentiment-analysis", model="Siebert/sentiment-roberta-large-english")
