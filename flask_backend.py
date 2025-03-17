@@ -34,11 +34,11 @@ def analyze_text(text):
 
     return results
 
-@app.route("/analyze", methods=["POST"])
+@app.route('/analyze', methods=['POST'])
 def analyze():
-    text = request.form["text"]
-    result = analyze_text(text)
-    return jsonify(result)
+    data = request.get_json()
+    text = data.get("text", "") if data else ""
+    return jsonify({'message': 'API funzionante!', 'text': text})
 
 import os
 
