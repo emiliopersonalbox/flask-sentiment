@@ -3,3 +3,4 @@ gunicorn
 transformers
 torch
 protobuf
+flask-cors
