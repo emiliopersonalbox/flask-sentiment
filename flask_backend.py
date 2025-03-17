@@ -1,11 +1,11 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS  # Importa CORS
+from flask_cors import CORS  # Importa Flask-CORS
 from transformers import pipeline
 import os
 
 
 app = Flask(__name__)
-CORS(app)  # Abilita CORS per tutte le richieste
+CORS(app)  # Abilita CORS per tutta l'app
 
 
 # Carica i modelli di Hugging Face
@@ -38,22 +38,18 @@ def analyze_text(text):
 
     return results
 
-@app.route('/analyze', methods=['GET', 'POST'])
+@app.route('/analyze', methods=['POST'])
 def analyze():
-    if request.method == 'POST':
-        data = request.get_json()
-        text = data.get("text", "") if data else ""
-    else:
-        text = request.args.get("text", "")
-
-    return jsonify({'message': 'API funzionante!', 'text': text})
+    data = request.get_json()
+    text = data.get("text", "")
+    return jsonify({"message": "API funzionante!", "text": text})
 
 
 import os
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Usa la porta assegnata da Render
-    app.run(host="0.0.0.0", port=port)  # Rendi accessibile il server
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
 
 
 
