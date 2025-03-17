@@ -1,6 +1,7 @@
 flask
+flask-cors
 gunicorn
 transformers
 torch
 protobuf
-flask-cors
+
